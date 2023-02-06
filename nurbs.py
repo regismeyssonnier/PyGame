@@ -159,7 +159,7 @@ def gameloop():
 	#w = [1.0, 0.5, 1.0, 0.75, 0.6, 0.8, 0.9]
 	w = []
 	for i in range(NB):
-		r = random.randint(0, 150)
+		r = random.randint(1, 150)
 		if r < 0:r = 0
 		if r > 100: r = 100
 		r /= 100.0
