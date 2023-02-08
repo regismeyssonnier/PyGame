@@ -94,7 +94,10 @@ class Trackball:
 
 			end_pt = self.mouse_to_sphere(mc[0], mc[1])
 			self.v = cross3(self.start_pt, end_pt)
-			self.angle = math.acos(dot3(self.start_pt, end_pt))*2.0 * 180.0 / 3.14159
+			costh = dot3(self.start_pt, end_pt)
+			if(costh < -1.0):costh = -1.0
+			if(costh > 1.0):costh = 1.0
+			self.angle = math.acos(costh)*2.0 * 180.0 / 3.14159
 			
 
 			"""x = mc[0] - (self.width / 2.0)

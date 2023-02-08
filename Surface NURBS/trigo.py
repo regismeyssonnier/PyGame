@@ -3,13 +3,19 @@ import math
 def distance(p1, p2):
 	return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
+def distance3(p1, p2):
+	return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z))
+
 def normalize(p1):
 	l = math.sqrt(p1.x*p1.x + p1.y*p1.y)
 	return Point(p1.x / l, p1.y / l)
 
 def normalize3(p1):
 	l = math.sqrt(p1.x*p1.x + p1.y*p1.y + p1.z*p1.z)
-	return Point3(p1.x / l, p1.y / l, p1.z / l)
+	if l == 0.0:
+		return Point3(0.0, 0.0, 0.0)
+	else:
+		return Point3(p1.x / l, p1.y / l, p1.z / l)
 
 def norme(p):
 	return math.sqrt(p.x * p.x + p.y * p.y)

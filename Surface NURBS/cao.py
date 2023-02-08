@@ -12,6 +12,7 @@ from quaternion import *
 from trackball import *
 from grid import *
 from nurbs3 import *
+from shader import *
 
 pygame.init()
 
@@ -42,98 +43,7 @@ score_font = pygame.font.SysFont("comicsansms", 35)
 speed_font = pygame.font.SysFont("comicsansms", 100)
 
 
-#--------------------[(+)] WARNING [(+)] ------------------------------------
-class Shader:
 
-
-	def __init__(self):
-		self.vertexShader = 0
-		self.fragShader = 0
-
-		self.frag_source = """
-		
-		varying vec4 vColor;
-		void main(){
-			gl_FragColor = vColor ;
-		
-		 
-		}"""
-	
-		frag_source2 = """
-	
-		varying vec4 vColor;
-		void main(){
-			gl_FragColor = gl_Color;
-		 
-		}"""		
-			
-	
-		self.vertex_source="""//varying vec3 v;
-		//varying vec3 N;
-		attribute vec4 c;
-		attribute vec4 vert;
-		varying vec4 vColor;
-
-		void main(void)
-		{
-
-			//v = gl_ModelViewMatrix * gl_Vertex;
-			//N = gl_NormalMatrix * gl_Normal;
-			gl_PointSize = 10;
-			gl_Position = gl_ModelViewProjectionMatrix * vert;
-			gl_FrontColor = gl_Color;
-			vColor = c;
-			// gl_TexCoord[0]=gl_TextureMatrix[0] * gl_MultiTexCoord0;
-		}
-		"""
-
-
-		self.shader = [self.vertexShader, self.vertex_source, self.fragShader, self.frag_source]
-		self.v_program = self.Create_Shader()
-
-	def Create_Shader(self):
-		self.shader[0] = glCreateShader(GL_VERTEX_SHADER)
-
-		source = self.shader[1]
-		glShaderSource(self.shader[0], source)
-
-		glCompileShader(self.shader[0]);
-		status = glGetShaderiv(self.shader[0], GL_COMPILE_STATUS)
-		#print (glGetShaderInfoLog(shader[0]))
-
-		self.shader[2] = glCreateShader(GL_FRAGMENT_SHADER)
-
-		source = self.shader[3]
-		glShaderSource(self.shader[2], source)
-
-		glCompileShader(self.shader[2]);
-		status = glGetShaderiv(self.shader[2], GL_COMPILE_STATUS)
-		#print (glGetShaderInfoLog(shader[1]))
-	
-		v_program=glCreateProgram()
-		glAttachShader(v_program,self.shader[0])
-		glAttachShader(v_program,self.shader[2])
-		glLinkProgram(v_program)
-	
-		return v_program
-
-	def get_v_program(self):
-		return self.v_program
-
-	def use_program(self):
-		try:
-			glUseProgram(self.v_program)   
-		except OpenGL.error.GLError:
-			print (glGetProgramInfoLog(self.v_program))
-			print (glGetShaderInfoLog(self.vertexShader))
-			raise
-		
-
-	
-
-
-	
-#--------------------[(+)] END WARNING [(+)] ------------------------------------
 
 
 def gameloop():
@@ -143,7 +53,7 @@ def gameloop():
 	last_time = 0
 	ntime = 0
 
-	shader = Shader()
+	shader = Shader(True)
 	quat = Quaternion(0.0, 0.0, 1.0, 0.0)
 	#vVertices = [0.0, 0.25, 0.0, 1.1, 0.25, 0.0, 0.0, -0.25, -1.5, 1.0, -0.25, -1.5, 0.0, 1.0, 0.0, 1.1, 1.0, 0.0, 0.0, 0.6, -1.5, 1.0, 1.0, -1.5]
 	vVertices = [0.0, -0.25, -1.5, 1.0, -0.25, -1.5, 0.0, 0.6, -1.5]
@@ -196,12 +106,19 @@ def gameloop():
 		r /= 100.0
 		w.append(0.5)
 
-	nurbs = Nurbs3(d, tu, tv, [], 0.05, w, dis_width, dis_height)
+	nurbs = Nurbs3(d, tu, tv, [], 0.025, w, dis_width, dis_height)
 	nurbs.create_grid_base()
 	nurbs.set_mouse_keyboard(True, True)
 	nurbs.compute()
 	nurbs.create_line()
 	nurbs.create_triangle()
+	nurbs.compute_normal()
+	nurbs.create_shader()
+	nurbs.create_line_normal()
+
+	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ];
+	mat_shininess = [ 50.0 ];
+	light_position = [ 0.0, 0.5, 5.5, 0.0 ];
 
 	while not game_over:
 
@@ -246,7 +163,7 @@ def gameloop():
 
 
 	
-		shader.use_program()
+		
 
 		
 		color = glGetAttribLocation(shader.get_v_program(), "c")
@@ -268,13 +185,31 @@ v 1.0 1.0 -1.5"""
 		vIndices = [0,1,2]#2,3,6 3,7,6
 		vColors = [1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0,  0.0, 1.0, 1.0, 1.0,  1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0,  0.0, 1.0, 1.0, 1.0]
 
+		
+		#glShadeModel (GL_SMOOTH);
+
+		#glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+		#glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+		
+
+		shader.use_program()
+
+		glEnable(GL_LIGHTING);
+		#glEnable(GL_LIGHT0);
+		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+		
 		nurbs.update_pos_point_c(diff_t)
 		nurbs.draw_point_control(shader.get_v_program())
 		nurbs.update_pos_point_curve(diff_t)
-		nurbs.draw_pt_curve(shader.get_v_program())
-		nurbs.draw_line_curve(shader.get_v_program())
-		nurbs.draw_triangle_curve(shader.get_v_program())
+		#nurbs.draw_pt_curve(shader.get_v_program())
+		#nurbs.draw_line_curve(shader.get_v_program())
+		nurbs.use_program()
+		nurbs.draw_triangle_curve()
+		#nurbs.update_pos_line_normal_curve(diff_t)
+		#nurbs.draw_triangle_normal()
+		glDisable(GL_LIGHTING)
 
+		shader.use_program()
 		grid.Update_pos(diff_t)
 		grid.Draw(shader.get_v_program())
 		
@@ -305,6 +240,17 @@ v 1.0 1.0 -1.5"""
 
 			#print(str(x) + " " + str(y) + " " + str(z))
 			rot = quat.get_mat3x3(trackball.get_angle()*(diff_t * 0.1 / 100))
+
+			#update lightpos
+			tl = []
+			for y in  range(3):
+				r = 0
+				for x in range(3):
+					r+= rot[y][x] * light_position[x]
+					
+				tl.append(r)
+			light_position = tl
+
 			i = 0
 			ln = len(vVertices)
 			rVert = []
