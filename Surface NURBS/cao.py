@@ -112,10 +112,11 @@ def gameloop():
 	nurbs.compute()
 	nurbs.create_line()
 	nurbs.create_triangle()
-	nurbs.compute_normal()
+	nurbs.compute_normal(1)
 	nurbs.create_shader()
 	nurbs.create_line_normal()
 
+	altlight = True
 	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ];
 	mat_shininess = [ 50.0 ];
 	light_position = [ 0.0, 0.5, 5.5, 0.0 ];
@@ -137,6 +138,15 @@ def gameloop():
 
 			elif event.type == pygame.MOUSEMOTION:
 				mc = pygame.mouse.get_pos()
+			elif event.type == pygame.KEYUP:		
+				if event.key == pygame.K_KP9:
+					altlight = not altlight
+					if altlight:
+						nurbs.compute_normal(1)
+						nurbs.create_line_normal()
+					else:
+						nurbs.compute_normal(2)
+						nurbs.create_line_normal()
 
 			trackball.set_event(event)
 			grid.set_event(event)
@@ -204,6 +214,7 @@ v 1.0 1.0 -1.5"""
 		#nurbs.draw_pt_curve(shader.get_v_program())
 		#nurbs.draw_line_curve(shader.get_v_program())
 		nurbs.use_program()
+		nurbs.update_pos_normal(diff_t)
 		nurbs.draw_triangle_curve()
 		#nurbs.update_pos_line_normal_curve(diff_t)
 		#nurbs.draw_triangle_normal()

@@ -65,33 +65,54 @@ class Nurbs3:
 		varying vec3 N;
 		varying vec4 vColor;
         varying vec4 v;
+        varying mat4 mvm;
 		void main(){
             vec3 normal = normalize(vec3(N.x, N.y, N.z));
             //gl_LightSource[0].position.xyz
-            vec3 L = normalize(vec3(0.0, 0.5, 5.5) - vec3(v.x, v.y, v.z));
-            vec3 L2 = normalize(vec3(0.0, 4.0, 0.0) - vec3(v.x, v.y, v.z));
-            vec3 L3 = normalize(vec3(5.5, 0.5, -1.5) - vec3(v.x, v.y, v.z));
-            vec3 L4 = normalize(vec3(-2.5, 0.5, -1.5) - vec3(v.x, v.y, v.z));
+
+            vec4 lp1 = vec4(0.0, 0.5, -5.5, 1.0);
+            vec4 lp2 = vec4(0.0, 4.0, -1.5, 1.0);
+            vec4 lp3 = vec4(5.5, 0.5, -1.5, 1.0);
+            vec4 lp4 = vec4(-2.5, 0.5, -1.0, 1.0);
+            vec4 lp5 = vec4(0.0, 0.5, -5.5, 1.0);
+
+            /*lp1 = mvm * lp1;
+            lp2 = mvm * lp2;
+            lp3 = mvm * lp3;
+            lp4 = mvm * lp4;*/
+
+            vec3 L = normalize(lp1 - vec3(v.x, v.y, v.z));
+            vec3 L2 = normalize(lp2 - vec3(v.x, v.y, v.z));
+            vec3 L3 = normalize(lp3 - vec3(v.x, v.y, v.z));
+            vec3 L4 = normalize(lp4 - vec3(v.x, v.y, v.z));
+            vec3 L5 = normalize(lp5 - vec3(v.x, v.y, v.z));
             vec3 E = normalize(-v);  
-            vec3 R = normalize(-reflect(L,N));
+            vec3 R = normalize(reflect(-L,N));
+            vec3 R2 = normalize(reflect(-L2,N));
+            vec3 R3 = normalize(reflect(-L3,N));
+            vec3 R4 = normalize(reflect(-L4,N));
+            vec3 R5 = normalize(reflect(-L5,N));
 
             float distance = length(L);
 
             float angl = dot(N, L);
 
-            vec3 specular = pow(dot(N, L), 50.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular = pow(dot(E, R), 10.0) * vec3(1.0, 0.0, 1.0);
             specular = max(specular, 0.0);
 
-            vec3 specular2 = pow(dot(N, L2), 10.0) * vec3(1.0, 1.0, 1.0);
+            vec3 specular2 = pow(dot(E, R2), 50.0) * vec3(1.0, 1.0, 1.0);
             specular2 = max(specular2, 0.0);
 
-            vec3 specular3 = pow(dot(N, L3), 10.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular3 = pow(dot(E, R3), 50.0) * vec3(1.0, 0.0, 1.0);
             specular3 = max(specular3, 0.0);
 
-            vec3 specular4 = pow(dot(N, L4), 10.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular4 = pow(dot(E, R4), 50.0) * vec3(1.0, 0.0, 1.0);
             specular4 = max(specular4, 0.0);
 
-            float ambientStrength = 0.2;
+            vec3 specular5 = pow(dot(E, R5), 50.0) * vec3(1.0, 0.0, 1.0);
+            specular5 = max(specular5, 0.0);
+
+            float ambientStrength = 0.1;
             vec4 ambient = ambientStrength * vColor;
 
             float ambientStrength2 = 0.1;
@@ -103,9 +124,12 @@ class Nurbs3:
             float ambientStrength4 = 0.1;
             vec4 ambient4 = ambientStrength4 * vColor;
 
+            float ambientStrength5 = 0.1;
+            vec4 ambient5 = ambientStrength5 * vColor;
+
             float diff = max(dot(N, L), 0.0);
             vec4 diffuse = diff * vColor;
-            diffuse = clamp(diffuse, 0.0, 1.0);
+            diffuse = clamp(diffuse, 0.0, 1.0)*0.75;
             vec4 res = (ambient + diffuse + vec4(specular.xyz, 1.0) );
             res = clamp(res, 0.0, 1.0);
 
@@ -127,6 +151,11 @@ class Nurbs3:
             vec4 res4 = (ambient4 + diffuse4 + vec4(specular4.xyz, 1.0) );
             res2 = clamp(res4, 0.0, 1.0);
                                     
+            float diff5 = max(dot(N, L5), 0.0);
+            vec4 diffuse5 = diff5 * vColor;
+            diffuse5 = clamp(diffuse5, 0.0, 1.0);
+            vec4 res5 = (ambient5 + diffuse5 + vec4(specular5.xyz, 1.0) );
+            res5 = clamp(res5, 0.0, 1.0);
             
             /*if(res.r <= 0.4 && res.g <= 0.4 && res.b <= 0.4){
                 res = vColor;
@@ -135,7 +164,7 @@ class Nurbs3:
             //vec4 res = vColor;
             
             //res *= vec4(vColor.xyz+E.xyz, 1.0);
-			gl_FragColor = clamp(res*0.5+res2+res4+res3, 0.0, 1.0) ;
+			gl_FragColor = clamp(res*0.25+res2+res4+res3, 0.0, 1.0) ;
 		
 		 
 		}"""
@@ -149,7 +178,7 @@ class Nurbs3:
         attribute vec4 vert;
         varying vec4 v;
         varying vec4 vColor;
-        
+        varying mat4 mvm;
 		void main(void)
 		{
 
@@ -157,6 +186,7 @@ class Nurbs3:
 			//N = gl_NormalMatrix * gl_Normal;
             N = n;//vec3(0.0, 1.0, 0.0);
             v = vec4(gl_ModelViewMatrix * vert);
+            //mvm = gl_ModelViewProjectionMatrix;
             //v = vert;
 			gl_PointSize = 10;
 			gl_Position = gl_ModelViewProjectionMatrix * vert;
@@ -298,6 +328,31 @@ class Nurbs3:
                     
         self.pt_normal = rVert;
 
+    def update_pos_normal(self, diff_t):
+        if(not self.trackball.get_update()):
+            return
+        vectq = self.trackball.get_vector()
+
+        self.quat = Quaternion(0.0, vectq.x, vectq.y, vectq.z)
+
+          
+        rot = self.quat.get_mat3x3(self.trackball.get_angle()*(diff_t * 0.1 / 100))
+        i = 0
+            
+        rVert = []
+        lnp = len(self.normal)
+        while i  < lnp:
+	        for y in  range(3):
+		        r = 0
+		        for x in range(3):
+			        r += rot[y][x] * self.normal[i+x]
+
+		        rVert.append(r);
+	        i += 3
+                     
+                    
+        self.normal = rVert;
+
     def update_pos_point_curve(self, diff_t):
         if(not self.trackball.get_update()):
             return
@@ -438,7 +493,11 @@ class Nurbs3:
 
             zi += interz
 
-        #self.point_c[1] += 1.8
+        self.point_c[1] += 1.8
+        self.point_c[10] += 1.8
+        self.point_c[37] += 1.8
+        self.point_c[46] += 1.8
+
         self.point_c[16] += 0.8
         self.point_c[19] += 0.8
         self.point_c[28] += 0.8
@@ -501,7 +560,8 @@ class Nurbs3:
         """for i in range(len(self.pt_curve)):
             print(str(i) + " "+ str(self.pt_curve[i]))"""
 
-    def compute_normal(self):
+    def compute_normal(self, ch):
+        self.normal=[]
         lnp = len(self.pt_curve)
         x=0.0
         y=0.0
@@ -537,9 +597,7 @@ class Nurbs3:
                 p2 = Point3(self.pt_curve[ind+3], self.pt_curve[ind+4], self.pt_curve[ind+5])
                 p22 = Point3(self.pt_curve[ind+nb_line*3], self.pt_curve[ind+nb_line*3+1], self.pt_curve[ind+nb_line*3+2])
                 ind+=3
-                #p1 = Point3(p1.x+1000.0, p1.y+1000.0, p1.z+1000.0)
-                #p2 = Point3(p2.x+1000.0, p2.y+1000.0, p2.z+1000.0)
-                #p22 = Point3(p22.x+1000.0, p22.y+1000.0, p22.z+1000.0)
+
                 pp = Point3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
                 pq = Point3(p22.x - p1.x, p22.y - p1.y, p22.z - p1.z)
                 ppn = normalize3(pp)
@@ -548,22 +606,16 @@ class Nurbs3:
                 p4 = cross3(pqn, ppn)
                 #print("p3" + str(p3.x)  + " " + str(p3.y) + " " + str(p3.z))
                 #print("p4" + str(p4.x)  + " " + str(p4.y) + " " + str(p4.z))
+                           
 
-                p5 = Point3(p1.x + p3.x/10.0, p1.y + p3.y/10.0, p1.z + p3.z/10.0)
-                p6 = Point3(p1.x + p4.x/10.0, p1.y + p4.y/10.0, p1.z + p4.z/10.0)
-
-                d1 = distance3(p5, c)
-                d2 = distance3(p6, c)
-                #print("dist" + str(i)  + " " + str(d1) + " " + str(d2))
-
-                if d1 < d2:
-                    self.normal[ind] =p4.x
-                    self.normal[ind+1] =p4.y
-                    self.normal[ind+2] =p4.z
+                if ch == 1:
+                    self.normal[ind] =p3.x
+                    self.normal[ind+1] =p3.y
+                    self.normal[ind+2] =p3.z
                 else:
-                    self.normal[ind] = p3.x
-                    self.normal[ind+1] = p3.y
-                    self.normal[ind+2] = p3.z
+                    self.normal[ind] = p4.x
+                    self.normal[ind+1] = p4.y
+                    self.normal[ind+2] = p4.z
             i+=1
 
         i = 0
@@ -577,7 +629,7 @@ class Nurbs3:
             self.normal[i+1] = pn.y
             self.normal[i+2] = pn.z
 
-            print(str(self.normal[i]) + " " + str(self.normal[i+1]) + " " + str(self.normal[i+2]))
+            #print(str(self.normal[i]) + " " + str(self.normal[i+1]) + " " + str(self.normal[i+2]))
             i+=3
             
 
@@ -586,7 +638,9 @@ class Nurbs3:
         print(lnn)
 
     def create_line_normal(self):
-
+        self.pt_normal = []
+        self.indices_n = []
+        self.color_n = []
         ln = len(self.normal)
         ind = 0
         i = 0;
@@ -667,14 +721,14 @@ class Nurbs3:
                 self.indices_t.append(ind)
                 self.indices_t.append(ind+1)
                 #if alt:
-                self.add_color_t(1.0, 1.0, 0.0, 1.0)
-                self.add_color_t(1.0, 1.0, 0.0, 1.0)
+                self.add_color_t(0.0, 1.0, 1.0, 1.0)
+                self.add_color_t(0.0, 1.0, 1.0, 1.0)
                 """else:
                     self.add_color_t(0.0, 1.0, 1.0, 1.0)
                     self.add_color_t(0.0, 1.0, 1.0, 1.0)"""
                 self.indices_t.append(ind+nb_line)
                 #if not alt:
-                self.add_color_t(1.0, 1.0, 0.0, 1.0)
+                self.add_color_t(0.0, 1.0, 1.0, 1.0)
                 #else:
                  #   self.add_color_t(0.0, 1.0, 1.0, 1.0)
 
@@ -684,14 +738,14 @@ class Nurbs3:
                     self.add_color_t(0.0, 1.0, 1.0, 1.0)
                     self.add_color_t(0.0, 1.0, 1.0, 1.0)
                 else:"""
-                self.add_color_t(1.0, 1.0, 0.0, 1.0)
-                self.add_color_t(1.0, 1.0, 0.0, 1.0)
+                self.add_color_t(0.0, 1.0, 1.0, 1.0)
+                self.add_color_t(0.0, 1.0, 1.0, 1.0)
                     
                 self.indices_t.append(ind+nb_line)
                 """if not alt:
                     self.add_color_t(0.0, 1.0, 1.0, 1.0)
                 else:"""
-                self.add_color_t(1.0, 1.0, 0.0, 1.0)
+                self.add_color_t(0.0, 1.0, 1.0, 1.0)
                     
                 ind += 1
 
