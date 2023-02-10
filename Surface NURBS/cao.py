@@ -50,6 +50,9 @@ def gameloop():
 
 	game_over = False
 
+	ZOOMP = 1.1
+	ZOOMM = 0.9
+
 	last_time = 0
 	ntime = 0
 
@@ -115,6 +118,7 @@ def gameloop():
 	nurbs.compute_normal(1)
 	nurbs.create_shader()
 	nurbs.create_line_normal()
+	#nurbs.zoom(2.0)
 
 	altlight = True
 	mat_specular = [ 1.0, 1.0, 1.0, 1.0 ];
@@ -122,7 +126,10 @@ def gameloop():
 	light_position = [ 0.0, 0.5, 5.5, 0.0 ];
 
 	while not game_over:
-
+		last_time = ntime
+		ntime = pygame.time.get_ticks();
+		diff_t = ntime - last_time		
+		#print (diff_t)
 		
 		for event in pygame.event.get():
 			#print(event)
@@ -147,6 +154,41 @@ def gameloop():
 					else:
 						nurbs.compute_normal(2)
 						nurbs.create_line_normal()
+			elif event.type == pygame.KEYDOWN:		
+				if event.key == pygame.K_KP_PLUS:
+					nurbs.zoom(ZOOMP)
+					nurbs.add_zoom(ZOOMP)
+				elif event.key == pygame.K_KP_MINUS:
+					nurbs.zoom(ZOOMM)
+					nurbs.add_zoom(ZOOMM)
+				elif event.key == pygame.K_LEFT:
+					nurbs.dec_point_sel()
+					
+				elif event.key == pygame.K_RIGHT:
+					nurbs.inc_point_sel()
+
+				elif event.key == pygame.K_i:
+					nurbs.add_coord_xyz(0.01, 0.0, 0.0)
+				elif event.key == pygame.K_k:
+					nurbs.add_coord_xyz(-0.01, 0.0, 0.0)
+				elif event.key == pygame.K_o:
+					nurbs.add_coord_xyz(0.0, 0.01, 0.0)
+				elif event.key == pygame.K_l:
+					nurbs.add_coord_xyz(0.01, -0.01, 0.0)
+				elif event.key == pygame.K_p:
+					nurbs.add_coord_xyz(0.0, 0.0, 0.01)
+				elif event.key == pygame.K_m:
+					nurbs.add_coord_xyz(0.0, 0.0, -0.01)
+				elif event.key == pygame.K_u:
+					#nurbs.create_grid_base()
+					nurbs.compute()
+					nurbs.create_line()
+					nurbs.create_triangle()
+					nurbs.compute_normal(1)
+					nurbs.create_line_normal()
+					#nurbs.zoom(nurbs.zooom)
+				elif event.key == pygame.K_s:
+					nurbs.save_obj()
 
 			trackball.set_event(event)
 			grid.set_event(event)
@@ -187,10 +229,7 @@ v 1.1 1.0 0.0
 v 0.0 1.0 -1.5   6
 v 1.0 1.0 -1.5"""
 
-		last_time = ntime
-		ntime = pygame.time.get_ticks();
-		diff_t = ntime - last_time		
-		#print (diff_t)
+		
 
 		vIndices = [0,1,2]#2,3,6 3,7,6
 		vColors = [1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0,  0.0, 1.0, 1.0, 1.0,  1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0,  0.0, 1.0, 1.0, 1.0]

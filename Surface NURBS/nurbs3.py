@@ -47,6 +47,10 @@ class Nurbs3:
         self.color_n = []
         self.indices_n = []
 
+        self.point_c_sel = 0;
+        self.zooom = 1.0;
+        
+
     def set_event(self, event):
         self.trackball.set_event(event)
 
@@ -72,7 +76,7 @@ class Nurbs3:
 
             vec4 lp1 = vec4(0.0, 0.5, -5.5, 1.0);
             vec4 lp2 = vec4(0.0, 4.0, -1.5, 1.0);
-            vec4 lp3 = vec4(5.5, 0.5, -1.5, 1.0);
+            vec4 lp3 = vec4(5.5, 0.5, -1.0, 1.0);
             vec4 lp4 = vec4(-2.5, 0.5, -1.0, 1.0);
             vec4 lp5 = vec4(0.0, 0.5, -5.5, 1.0);
 
@@ -97,19 +101,19 @@ class Nurbs3:
 
             float angl = dot(N, L);
 
-            vec3 specular = pow(dot(E, R), 10.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular = pow(dot(E, R), 10.0) * vec3(1.0, 1.0, 1.0);
             specular = max(specular, 0.0);
 
             vec3 specular2 = pow(dot(E, R2), 50.0) * vec3(1.0, 1.0, 1.0);
             specular2 = max(specular2, 0.0);
 
-            vec3 specular3 = pow(dot(E, R3), 50.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular3 = pow(dot(E, R3), 50.0) * vec3(1.0, 1.0, 1.0);
             specular3 = max(specular3, 0.0);
 
-            vec3 specular4 = pow(dot(E, R4), 50.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular4 = pow(dot(E, R4), 50.0) * vec3(1.0, 1.0, 1.0);
             specular4 = max(specular4, 0.0);
 
-            vec3 specular5 = pow(dot(E, R5), 50.0) * vec3(1.0, 0.0, 1.0);
+            vec3 specular5 = pow(dot(E, R5), 50.0) * vec3(1.0, 1.0, 1.0);
             specular5 = max(specular5, 0.0);
 
             float ambientStrength = 0.1;
@@ -164,7 +168,7 @@ class Nurbs3:
             //vec4 res = vColor;
             
             //res *= vec4(vColor.xyz+E.xyz, 1.0);
-			gl_FragColor = clamp(res*0.25+res2+res4+res3, 0.0, 1.0) ;
+			gl_FragColor = clamp(res*0.25+res2*0.25+res4*0.5+res3, 0.0, 1.0) ;
 		
 		 
 		}"""
@@ -472,8 +476,51 @@ class Nurbs3:
         self.color_n.append(b)
         self.color_n.append(a)
 
-    def create_grid_base(self):
+    def add_zoom(self, z):
+        self.zooom *= z
 
+    def set_zoom(self, z):
+        self.zooom = z
+
+    def get_nb_point_controle(self):
+        return len(self.point_c)
+
+    def inc_point_sel(self):
+        #print(len(self.point_c))
+        self.color_ptc[self.point_c_sel*4] = 1.0
+        self.color_ptc[self.point_c_sel*4+1] = 0.0
+        self.color_ptc[self.point_c_sel*4+2] = 0.0
+        self.color_ptc[self.point_c_sel*4+3] = 1.0
+        self.point_c_sel = (self.point_c_sel+1)%(len(self.point_c)/3)
+        self.color_ptc[self.point_c_sel*4] = 0.0
+        self.color_ptc[self.point_c_sel*4+1] = 1.0
+        self.color_ptc[self.point_c_sel*4+2] = 0.0
+        self.color_ptc[self.point_c_sel*4+3] = 1.0
+
+    def dec_point_sel(self):
+        #print(len(self.point_c))
+        self.color_ptc[self.point_c_sel*4] = 1.0
+        self.color_ptc[self.point_c_sel*4+1] = 0.0
+        self.color_ptc[self.point_c_sel*4+2] = 0.0
+        self.color_ptc[self.point_c_sel*4+3] = 1.0
+        self.point_c_sel-=1
+        if self.point_c_sel < 0:
+            self.point_c_sel = (len(self.point_c)/3)-1
+        self.color_ptc[self.point_c_sel*4] = 0.0
+        self.color_ptc[self.point_c_sel*4+1] = 1.0
+        self.color_ptc[self.point_c_sel*4+2] = 0.0
+        self.color_ptc[self.point_c_sel*4+3] = 1.0
+
+    def add_coord_xyz(self, x, y, z):
+        self.point_c[self.point_c_sel * 3] += x;
+        self.point_c[self.point_c_sel * 3+1] += y;
+        self.point_c[self.point_c_sel * 3+2] += z;
+
+
+    def create_grid_base(self):
+        self.point_c = []
+        self.indices_ptc = []
+        self.color_ptc = []
         xi = -1.0;
         yi = -0.15
         zi = -1.6
@@ -483,12 +530,17 @@ class Nurbs3:
         for i in range(self.nb_quadsx+1):
             xi = -1.0;
             for j in range(self.nb_quadsz+1):
+               
                 self.point_c.append(xi)
                 self.point_c.append(yi)
                 self.point_c.append(zi)
                 self.indices_ptc.append(ind)
+                
+                if ind == self.point_c_sel:
+                    self.add_color_ptc(0.0, 1.0, 0.0, 1.0)
+                else:
+                    self.add_color_ptc(1.0, 0.0, 0.0, 1.0)
                 ind += 1
-                self.add_color_ptc(1.0, 0.0, 0.0, 1.0)
                 xi += inter
 
             zi += interz
@@ -507,6 +559,8 @@ class Nurbs3:
     def compute(self):
 
         self.pt_curve = []
+        self.indices_ptcu = []
+        self.color_ptcu = []
         u = 0.1
         mu = self.nb_quadsx+1
         mv = self.nb_quadsz+1
@@ -663,6 +717,8 @@ class Nurbs3:
 
 
     def create_line(self):
+        self.indices_l = []
+        self.color_l = []
         i = 0
         nb_line = int(0.8/self.steps)
         ind = 0
@@ -712,6 +768,8 @@ class Nurbs3:
          #   print(self.indices_l[i])
 
     def create_triangle(self):
+        self.indices_t = []
+        self.color_t = []
         nb_line = int(0.8/self.steps)
         ind = 0
         alt = True
@@ -749,7 +807,63 @@ class Nurbs3:
                     
                 ind += 1
 
-            
+    def zoom(self, z):
+        ln = len(self.pt_curve)
+
+        i = 0
+        while i < ln:
+            self.pt_curve[i+2] -= -1.6
+            i+=3
+
+        i=0
+        while i < ln:
+            self.pt_curve[i] *= z
+            self.pt_curve[i+1] *= z
+            self.pt_curve[i+2] *= z
+            i+=3
+
+        i = 0
+        while i < ln:
+            self.pt_curve[i+2] += -1.6
+            i+=3
+
+        #-----
+        ln = len(self.point_c)
+        i = 0
+        while i < ln:
+            self.point_c[i+2] -= -1.6
+            i+=3
+
+        i=0
+        while i < ln:
+            self.point_c[i] *= z
+            self.point_c[i+1] *= z
+            self.point_c[i+2] *= z
+            i+=3
+
+        i = 0
+        while i < ln:
+            self.point_c[i+2] += -1.6
+            i+=3
+
+        #-------------
+        ln = len(self.pt_normal)
+        i = 0
+        while i < ln:
+            self.pt_normal[i+2] -= -1.6
+            i+=3
+
+        i=0
+        while i < ln:
+            self.pt_normal[i] *= z
+            self.pt_normal[i+1] *= z
+            self.pt_normal[i+2] *= z
+            i+=3
+
+        i = 0
+        while i < ln:
+            self.pt_normal[i+2] += -1.6
+            i+=3
 
 
     def draw_point_control(self, v_program):
@@ -887,4 +1001,38 @@ class Nurbs3:
         glEnableVertexAttribArray(verticesatt)
        
         glDrawElements(GL_LINES, len(self.indices_n),  GL_UNSIGNED_INT, self.indices_n)
+
+    
+    def save_obj(self):
+        f = open("nurbs.obj", "w")
+        
+        lnpc = len(self.pt_curve)
+        i = 0
+        while i < lnpc:
+            s="v " + str(self.pt_curve[i]) + " " + str(self.pt_curve[i+1]) + " " + str(self.pt_curve[i+2]) + "\n"
+            f.write(s)
+            i+=3
+
+        f.write('\n')
+
+        lnpn = len(self.pt_normal)
+        i = 0
+        while i < lnpn:
+            s="vn " + str(self.pt_normal[i]) + " " + str(self.pt_normal[i+1]) + " " + str(self.pt_normal[i+2])+ "\n"
+            f.write(s)
+            i+=3
+
+        f.write('\n')
+
+        lnpi = len(self.indices_t)
+        i = 0
+        while i < lnpi:
+            s="f " + str(self.indices_t[i]+1) + "//" + str(self.indices_t[i]+1) + " "
+            s+= str(self.indices_t[i+1]+1) + "//" + str(self.indices_t[i+1]+1) + " "
+            s+= str(self.indices_t[i+2]+1) + "//" + str(self.indices_t[i+2]+1)+ "\n"
+            f.write(s)
+            i+=3
+
+
+        f.close()
 
