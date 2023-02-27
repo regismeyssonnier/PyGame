@@ -7,6 +7,7 @@ from grid import *
 from cross import *
 from circle import *
 from Player import *
+from Boss import *
 
 pygame.init()
 
@@ -34,7 +35,7 @@ game_speed = 120
 
 font_style = pygame.font.SysFont("bahnschrift", 25)
 score_font = pygame.font.SysFont("comicsansms", 35)
-speed_font = pygame.font.SysFont("comicsansms", 100)
+speed_font = pygame.font.SysFont("comicsansms", 21)
 
 
 def display_win(num):
@@ -51,6 +52,12 @@ def display_score(scorep1, scorep2):
 	value = font_style.render("Player2 : " + str(scorep2), True, yellow)
 	screen.blit(value, [20, 30])
 
+def display_who_play(alt):
+	if alt:
+		value = speed_font.render("Player1 plays", True, yellow)
+	else:
+		value = speed_font.render("Player2 plays", True, yellow)
+	screen.blit(value, [10, 100])
 
 def gameloop():
 
@@ -63,6 +70,11 @@ def gameloop():
 	there_is_winner = 0
 	WINNER = -1
 	scorep1 = scorep2 = 0
+	boss = True
+	start_game= True
+	first_move = 0
+
+	bosspl = Boss(2)
 
 	add_case = -1
 	cross = []
@@ -117,93 +129,178 @@ def gameloop():
 					#case 6  154, 404 /288, 549
 					#case 7  322, 404 /484, 549
 					#case 8  515, 404 /647, 549
-					if mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 53 and mc[1] <= 189:
-						if grid.get_case_occupied(0) == 0:
-							if alt:
-								grid.set_case_occupied(0, 1)
-								player1.cross.append(0)
-							else:
-								grid.set_case_occupied(0, 2)
-								player2.circle.append(0)
-							alt = not alt
-					elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 53 and mc[1] <= 189:
-						if grid.get_case_occupied(1) == 0:
-							if alt:
-								grid.set_case_occupied(1, 1)
-								player1.cross.append(1)
-							else:
-								grid.set_case_occupied(1, 2)
-								player2.circle.append(1)
-							alt = not alt
-					elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 53 and mc[1] <= 189:
-						if grid.get_case_occupied(2) == 0:
-							if alt:
-								grid.set_case_occupied(2, 1)
-								player1.cross.append(2)
-							else:
-								grid.set_case_occupied(2, 2)
-								player2.circle.append(2)
-							alt = not alt
-					elif mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 226 and mc[1] <= 369:
-						if grid.get_case_occupied(3) == 0:
-							if alt:
-								grid.set_case_occupied(3, 1)
-								player1.cross.append(3)
-							else:
-								grid.set_case_occupied(3, 2)
-								player2.circle.append(3)
-							alt = not alt
-					elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 226 and mc[1] <= 369:
-						if grid.get_case_occupied(4) == 0:
-							if alt:
-								grid.set_case_occupied(4, 1)
-								player1.cross.append(4)
-							else:
-								grid.set_case_occupied(4, 2)
-								player2.circle.append(4)
-							alt = not alt
-					elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 226 and mc[1] <= 369:
-						if grid.get_case_occupied(5) == 0:
-							if alt:
-								grid.set_case_occupied(5, 1)
-								player1.cross.append(5)
-							else:
-								grid.set_case_occupied(5, 2)
-								player2.circle.append(5)
-							alt = not alt
-					elif mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 404 and mc[1] <= 549:
-						if grid.get_case_occupied(6) == 0:
-							if alt:
-								grid.set_case_occupied(6, 1)
-								player1.cross.append(6)
-							else:
-								grid.set_case_occupied(6, 2)
-								player2.circle.append(6)
-							alt = not alt
-					elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 404 and mc[1] <= 549:
-						if grid.get_case_occupied(7) == 0:
-							if alt:
-								grid.set_case_occupied(7, 1)
-								player1.cross.append(7)
-							else:
-								grid.set_case_occupied(7, 2)
-								player2.circle.append(7)
-							alt = not alt
-					elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 404 and mc[1] <= 549:
-						if grid.get_case_occupied(8) == 0:
-							if alt:
-								grid.set_case_occupied(8, 1)
-								player1.cross.append(8)
-							else:
-								grid.set_case_occupied(8, 2)
-								player2.circle.append(8)
-							alt = not alt
+					if not boss:
+						if mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 53 and mc[1] <= 189:
+							if grid.get_case_occupied(0) == 0:
+								if alt:
+									grid.set_case_occupied(0, 1)
+									player1.cross.append(0)
+									first_move = 1
+								else:
+									grid.set_case_occupied(0, 2)
+									player2.circle.append(0)
+								alt = not alt
+						elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 53 and mc[1] <= 189:
+							if grid.get_case_occupied(1) == 0:
+								if alt:
+									grid.set_case_occupied(1, 1)
+									player1.cross.append(1)
+									first_move = 1
+								else:
+									grid.set_case_occupied(1, 2)
+									player2.circle.append(1)
+								alt = not alt
+						elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 53 and mc[1] <= 189:
+							if grid.get_case_occupied(2) == 0:
+								if alt:
+									grid.set_case_occupied(2, 1)
+									player1.cross.append(2)
+									first_move = 1
+								else:
+									grid.set_case_occupied(2, 2)
+									player2.circle.append(2)
+								alt = not alt
+						elif mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 226 and mc[1] <= 369:
+							if grid.get_case_occupied(3) == 0:
+								if alt:
+									grid.set_case_occupied(3, 1)
+									player1.cross.append(3)
+									first_move = 1
+								else:
+									grid.set_case_occupied(3, 2)
+									player2.circle.append(3)
+								alt = not alt
+						elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 226 and mc[1] <= 369:
+							if grid.get_case_occupied(4) == 0:
+								if alt:
+									grid.set_case_occupied(4, 1)
+									player1.cross.append(4)
+									first_move = 1
+								else:
+									grid.set_case_occupied(4, 2)
+									player2.circle.append(4)
+								alt = not alt
+						elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 226 and mc[1] <= 369:
+							if grid.get_case_occupied(5) == 0:
+								if alt:
+									grid.set_case_occupied(5, 1)
+									player1.cross.append(5)
+									first_move = 1
+								else:
+									grid.set_case_occupied(5, 2)
+									player2.circle.append(5)
+								alt = not alt
+						elif mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 404 and mc[1] <= 549:
+							if grid.get_case_occupied(6) == 0:
+								if alt:
+									grid.set_case_occupied(6, 1)
+									player1.cross.append(6)
+									first_move = 1
+								else:
+									grid.set_case_occupied(6, 2)
+									player2.circle.append(6)
+								alt = not alt
+						elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 404 and mc[1] <= 549:
+							if grid.get_case_occupied(7) == 0:
+								if alt:
+									grid.set_case_occupied(7, 1)
+									player1.cross.append(7)
+									first_move = 1
+								else:
+									grid.set_case_occupied(7, 2)
+									player2.circle.append(7)
+								alt = not alt
+						elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 404 and mc[1] <= 549:
+							if grid.get_case_occupied(8) == 0:
+								if alt:
+									grid.set_case_occupied(8, 1)
+									player1.cross.append(8)
+									first_move = 1
+								else:
+									grid.set_case_occupied(8, 2)
+									player2.circle.append(8)
+								alt = not alt
+					else:
+						if mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 53 and mc[1] <= 189:
+							if grid.get_case_occupied(0) == 0:
+								if alt:
+									grid.set_case_occupied(0, 1)
+									player1.cross.append(0)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 53 and mc[1] <= 189:
+							if grid.get_case_occupied(1) == 0:
+								if alt:
+									grid.set_case_occupied(1, 1)
+									player1.cross.append(1)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 53 and mc[1] <= 189:
+							if grid.get_case_occupied(2) == 0:
+								if alt:
+									grid.set_case_occupied(2, 1)
+									player1.cross.append(2)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 226 and mc[1] <= 369:
+							if grid.get_case_occupied(3) == 0:
+								if alt:
+									grid.set_case_occupied(3, 1)
+									player1.cross.append(3)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 226 and mc[1] <= 369:
+							if grid.get_case_occupied(4) == 0:
+								if alt:
+									grid.set_case_occupied(4, 1)
+									player1.cross.append(4)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 226 and mc[1] <= 369:
+							if grid.get_case_occupied(5) == 0:
+								if alt:
+									grid.set_case_occupied(5, 1)
+									player1.cross.append(5)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 154 and mc[0] <= 288 and mc[1] >= 404 and mc[1] <= 549:
+							if grid.get_case_occupied(6) == 0:
+								if alt:
+									grid.set_case_occupied(6, 1)
+									player1.cross.append(6)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 322 and mc[0] <= 484 and mc[1] >= 404 and mc[1] <= 549:
+							if grid.get_case_occupied(7) == 0:
+								if alt:
+									grid.set_case_occupied(7, 1)
+									player1.cross.append(7)
+									first_move = 1
+								
+								alt = not alt
+						elif mc[0] >= 515 and mc[0] <= 647 and mc[1] >= 404 and mc[1] <= 549:
+							if grid.get_case_occupied(8) == 0:
+								if alt:
+									grid.set_case_occupied(8, 1)
+									player1.cross.append(8)
+									first_move = 1
+								
+								alt = not alt
+
+
 					
 			if event.type == pygame.MOUSEBUTTONUP:
 				pass
 			if event.type == pygame.MOUSEMOTION:
 				mc = pygame.mouse.get_pos()
-				print(str(mc[0]) + " " + str(mc[1]))
+				#print(str(mc[0]) + " " + str(mc[1]))
 		
 			if event.type == pygame.KEYDOWN:				
 				if event.key == pygame.K_r:
@@ -211,33 +308,22 @@ def gameloop():
 						grid = Grid()
 						player1 = Player(1)
 						player2 = Player(2)
+						bosspl = Boss(2)
 						there_is_winner = 0
 						WINNER = -1
+						start_game = True
+						first_move = 0
+
+				if event.key == pygame.K_b:
+					if not first_move:
+						boss = True
+				if event.key == pygame.K_u:
+					if not first_move:
+						boss = False
 						
+		#print(str(boss) + ' '+ str(first_move))
 		
 		screen.blit(background.get(), (0, 0))
-	
-		if player1.type == 1:
-			
-				for i in range(len(player1.cross)):
-					num = player1.cross[i]
-					screen.blit(cross[num].get(), (cross[num].x, cross[num].y))
-		elif player1.type == 2:	
-				for i in range(len(player1.circle)):
-					num = player1.circle[i]
-					screen.blit(circle[num].get(), (circle[num].x, circle[num].y))
-
-		if player2.type == 1:
-			
-				for i in range(len(player2.cross)):
-					num = player2.cross[i]
-					screen.blit(cross[num].get(), (cross[num].x, cross[num].y))
-		elif player2.type == 2:	
-				for i in range(len(player2.circle)):
-					num = player2.circle[i]
-					screen.blit(circle[num].get(), (circle[num].x, circle[num].y))
-
-		
 
 		winner = WINNER
 		if there_is_winner == 0:
@@ -250,10 +336,75 @@ def gameloop():
 			WINNER = winner
 			display_win(winner)
 			there_is_winner = 1
+			first_move = 0
+
+	
+		if player1.type == 1:
+			
+				for i in range(len(player1.cross)):
+					num = player1.cross[i]
+					screen.blit(cross[num].get(), (cross[num].x, cross[num].y))
+		elif player1.type == 2:	
+				for i in range(len(player1.circle)):
+					num = player1.circle[i]
+					screen.blit(circle[num].get(), (circle[num].x, circle[num].y))
+		if not boss:
+			if player2.type == 1:
+			
+					for i in range(len(player2.cross)):
+						num = player2.cross[i]
+						screen.blit(cross[num].get(), (cross[num].x, cross[num].y))
+			elif player2.type == 2:	
+					for i in range(len(player2.circle)):
+						num = player2.circle[i]
+						screen.blit(circle[num].get(), (circle[num].x, circle[num].y))
+
+		else:
+		
+			if not alt and not grid.get_full() and not there_is_winner :
+
+				if not start_game:
+					#print("boss")
+					score = -float("inf")
+					ind = 0
+					for j in range(9):
+						#print(j)
+						if grid.get_case_occupied(j) == 0:
+							copy_grid = []
+							grid.get_copy(copy_grid)
+							new_grid = Grid()
+							new_grid.set_case(copy_grid)
+							new_grid.set_case_occupied(j, bosspl.type)
+							s = bosspl.compute_game(new_grid, 16, -float('inf'), float('inf'), 0)
+							if s > score:
+								score = s
+								ind = j
+
+					grid.set_case_occupied(ind, 2)
+					#print("move " + str(ind) + " score " + str(score))
+					bosspl.circle.append(ind)
+					alt = not alt
+					first_move = 1
+				else:
+					ind = random.randint(0, 8)
+					grid.set_case_occupied(ind, 2)
+					#print("move " + str(ind) + " score " + str(score))
+					bosspl.circle.append(ind)
+					alt = not alt
+					first_move = 1
+
+			for i in range(len(bosspl.circle)):
+				num = bosspl.circle[i]
+				screen.blit(circle[num].get(), (circle[num].x, circle[num].y))
+
+
+
+		
 							
-				
+		start_game  =False
 
 		display_score(scorep1, scorep2)
+		display_who_play(alt)
 
 		pygame.display.flip()
 
